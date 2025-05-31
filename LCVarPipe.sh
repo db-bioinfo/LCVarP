@@ -14,6 +14,8 @@ TARGETS="/home/administrator/lifecode/genomes/bed_files/WES_HG19/S33266340_Cover
 SNPEFF_JAR="/home/administrator/snpeff/snpEff/snpEff.jar"
 CLINVAR_VCF="/home/administrator/lifecode/genomes/databases/clnvar_hg19/clinvar.chr.vcf.gz"
 Mills_100G="/home/administrator/lifecode/genomes/databases/GATK_resources/hg19/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf"
+DBSNP_VCF="/home/administrator/lifecode/genomes/databases/dbsnp_hg19/dbsnp_hg19_00-All.vcf.gz"
+GNOMAD_VCF="/mnt/bioinfo-storage/DATABASES/hg19/gnomAD/hg19/merged/gnomad_renamed.vcf.gz"
 # Downstream analysis
 INTERVARDB="/home/administrator/lifecode/genomes/databases/intervar_humandb/hg19/intervar"
 HUMANDB="/home/administrator/lifecode/genomes/databases/intervar_humandb/hg19/humandb"
@@ -158,19 +160,18 @@ process_sample() {
 #mv ${sample}_GATK.filtered.norm.pass.vcf tmp/
 
 # Annotate with Clinvar
-bcftools annotate --threads $THREADS -a $CLINVAR_VCF \
-	-c CLNHGVS,CLNSIGCONF,ALLELEID,RS \
-	-o ${sample}_GATK.filtered.norm.snpeff.clnvar.vcf ${sample}_GATK.filtered.norm.snpeff.vcf.gz
+#bcftools annotate --threads $THREADS -a $CLINVAR_VCF \
+#	-c CLNHGVS,CLNSIGCONF,ALLELEID,RS \
+#	-o ${sample}_GATK.vcf ${sample}_GATK.filtered.norm.snpeff.vcf.gz
 
-mv ${sample}_GATK.filtered.norm.snpeff.vcf.gz* tmp/
-exit 0
+#mv ${sample}_GATK.filtered.norm.snpeff.vcf.gz* tmp/
+
 # Annotate with gnomAD quality control fields
-bcftools annotate --threads $THREADS \
-	-a $GNOMAD_VCF \
-	-c FILTER,INFO/segdup,INFO/lcr,INFO/rf_tp_probability,INFO/InbreedingCoeff \
-	-o ${sample}_GATK_gnomad_qc.vcf \
-	${sample}_GATK.filtered.norm.snpeff.vcf
-
+#bcftools annotate --threads $THREADS \
+#	-a $GNOMAD_VCF \
+#	-c FILTER,INFO/segdup,INFO/lcr,INFO/rf_tp_probability,INFO/InbreedingCoeff \
+#	-o ${sample}_GATK_gnomad_qc.vcf \
+#	TDG.vcf.gz
 
 # Convert to avinput
 #perl convert2annovar.pl --format vcf4 \
@@ -181,89 +182,103 @@ bcftools annotate --threads $THREADS \
 
 #mv ${sample}_GATK.vcf tmp/
 
-ln -s /home/administrator/Annovar/annovar/*.pl .
+#ln -s /home/administrator/Annovar/annovar/*.pl .
 
 # Intervar/Annovar annotation
-LCVar.py -b hg19 \
-	-i ${sample}_GATK.avinput --input_type=AVinput \
-	-o ${sample}_GATK.intervar \
-	-t $INTERVARDB \
-	-d $HUMANDB
+#LCVar.py -b hg19 \
+#	-i ${sample}_GATK.avinput --input_type=AVinput \
+#	-o ${sample}_GATK.intervar \
+#	-t $INTERVARDB \
+#	-d $HUMANDB
 
 #-------------------------- GATK Variants Processing ---------------------------#
 
 # Convert 1->chr1 in intervar output file
-python LCVarConv.py ${sample}_GATK.intervar.hg19_multianno.txt.intervar ${sample}_GATK.intervar.hg19_multianno.txt.chr.intervar
+#python LCVarConv.py ${sample}_GATK.intervar.hg19_multianno.txt.intervar ${sample}_GATK.intervar.hg19_multianno.txt.chr.intervar
 
-mv ${sample}_GATK.intervar.hg19_multianno.txt.intervar tmp/
-mv ${sample}_GATK.intervar.hg19_multianno.txt.grl_p tmp/
-mv ${sample}_GATK.avinput tmp/
-mv ${sample}_GATK.intervar.hg19_multianno.txt tmp/
+#mv ${sample}_GATK.intervar.hg19_multianno.txt.intervar tmp/
+#mv ${sample}_GATK.intervar.hg19_multianno.txt.grl_p tmp/
+#mv ${sample}_GATK.avinput tmp/
+#mv ${sample}_GATK.intervar.hg19_multianno.txt tmp/
 
 # Extract vcf headers
-bcftools view -h tmp/${sample}_GATK.vcf > ${sample}_header.tmp
+#bcftools view -h tmp/${sample}_GATK.vcf > ${sample}_header.tmp
 
 # Add INFO fields to vcf headers
-awk '
-/^##INFO/ && !added_info {
-	print;
-	print "##INFO=<ID=AVINPUTCHR,Number=1,Type=String,Description=\"Original ANNOVAR input chromosome\">";
-	print "##INFO=<ID=AVINPUTSTART,Number=1,Type=Integer,Description=\"Original ANNOVAR input start position\">";
-	print "##INFO=<ID=AVINPUTEND,Number=1,Type=Integer,Description=\"Original ANNOVAR input end position\">";
-	print "##INFO=<ID=AVINPUTREF,Number=1,Type=String,Description=\"Original ANNOVAR input reference allele\">";
-	print "##INFO=<ID=AVINPUTALT,Number=1,Type=String,Description=\"Original ANNOVAR input alternate allele\">";
-	added_info=1;
-	next;
-}
-{ print }
-' ${sample}_header.tmp > ${sample}_header.txt
-rm ${sample}_header.tmp
+#awk '
+#/^##INFO/ && !added_info {
+#	print;
+#	print "##INFO=<ID=AVINPUTCHR,Number=1,Type=String,Description=\"Original ANNOVAR input chromosome\">";
+#	print "##INFO=<ID=AVINPUTSTART,Number=1,Type=Integer,Description=\"Original ANNOVAR input start position\">";
+#	print "##INFO=<ID=AVINPUTEND,Number=1,Type=Integer,Description=\"Original ANNOVAR input end position\">";
+#	print "##INFO=<ID=AVINPUTREF,Number=1,Type=String,Description=\"Original ANNOVAR input reference allele\">";
+#	print "##INFO=<ID=AVINPUTALT,Number=1,Type=String,Description=\"Original ANNOVAR input alternate allele\">";
+#	added_info=1;
+#	next;
+#}
+#{ print }
+#' ${sample}_header.tmp > ${sample}_header.txt
+#rm ${sample}_header.tmp
 
 # Convert avinput to vcf
-awk '{print $9 "\t" $10 "\t" $11 "\t" $12 "\t" $13 "\t" $7 "\t" $15 "\t" $16 ";" "AVINPUTCHR=" $1 ";" "AVINPUTSTART=" $2 ";" "AVINPUTEND=" $3 ";" "AVINPUTREF=" $4 ";" "AVINPUTALT=" $5 ";" "\t" $17 "\t" $18}' tmp/${sample}_GATK.avinput > ${sample}_GATK.avinput.tmp
+#awk '{print $9 "\t" $10 "\t" $11 "\t" $12 "\t" $13 "\t" $7 "\t" $15 "\t" $16 ";" "AVINPUTCHR=" $1 ";" "AVINPUTSTART=" $2 ";" "AVINPUTEND=" $3 ";" "AVINPUTREF=" $4 ";" "AVINPUTALT=" $5 ";" "\t" $17 "\t" $18}' tmp/${sample}_GATK.avinput > ${sample}_GATK.avinput.tmp
 
 # Merge vcf headers to avinput (converted2vcf)
-cat ${sample}_header.txt ${sample}_GATK.avinput.tmp > ${sample}_GATK.avinput.vcf
-mv ${sample}_GATK.avinput.tmp tmp/
-mv ${sample}_header.txt tmp/
+#cat ${sample}_header.txt ${sample}_GATK.avinput.tmp > ${sample}_GATK.avinput.vcf
+#mv ${sample}_GATK.avinput.tmp tmp/
+#mv ${sample}_header.txt tmp/
 
 # Snisift Info Extraction
-conda run -n SNPSIFT SnpSift extractFields ${sample}_GATK.avinput.vcf CHROM POS REF ALT "ANN[0].GENE" "ANN[0].FEATUREID" "ANN[0].HGVS_P" "ANN[0].HGVS_C" "ANN[0].EFFECT" "ANN[0].IMPACT" "ANN[0].RANK" DP AF "GEN[0].AD" CLNHGVS CLNSIGCONF ALLELEID FILTER RS AVINPUTSTART AVINPUTEND AVINPUTREF AVINPUTALT >  ${sample}_GATK.snpsift.tmp
+#conda run -n SNPSIFT SnpSift extractFields ${sample}_GATK.avinput.vcf CHROM POS REF ALT "ANN[0].GENE" "ANN[0].FEATUREID" "ANN[0].HGVS_P" "ANN[0].HGVS_C" "ANN[0].EFFECT" "ANN[0].IMPACT" "ANN[0].RANK" DP AF "GEN[0].AD" CLNHGVS CLNSIGCONF ALLELEID FILTER RS AVINPUTSTART AVINPUTEND AVINPUTREF AVINPUTALT >  ${sample}_GATK.snpsift.tmp
 
 # Re-order with avinput coordinates
-awk -F'\t' '{print $1 "\t" $20 "\t" $21 "\t" $22 "\t" $23 "\t" $5 "\t" $6 "\t" $7 "\t" $8 "\t" $9 "\t" $10 "\t" $11 "\t" $12 "\t" $13 "\t" $14 "\t" $15 "\t" $16 "\t" $17 "\t" $18 "\t" $19}' ${sample}_GATK.snpsift.tmp > ${sample}_GATK.snpsift.tsv
+#awk -F'\t' '{print $1 "\t" $20 "\t" $21 "\t" $22 "\t" $23 "\t" $5 "\t" $6 "\t" $7 "\t" $8 "\t" $9 "\t" $10 "\t" $11 "\t" $12 "\t" $13 "\t" $14 "\t" $15 "\t" $16 "\t" $17 "\t" $18 "\t" $19}' ${sample}_GATK.snpsift.tmp > ${sample}_GATK.snpsift.tsv
 
-mv ${sample}_GATK.snpsift.tmp tmp/
-mv ${sample}_GATK.avinput.vcf tmp/
+#mv ${sample}_GATK.snpsift.tmp tmp/
+#mv ${sample}_GATK.avinput.vcf tmp/
 
 # Merge Snpsift & Intervar
-python LCVarMrg.py ${sample}_GATK.intervar.hg19_multianno.txt.chr.intervar ${sample}_GATK.snpsift.tsv ${sample}_GATK_merged.tsv ${sample}_GATK.unmatched.tsv
+#python LCVarMrg.py ${sample}_GATK.intervar.hg19_multianno.txt.chr.intervar ${sample}_GATK.snpsift.tsv ${sample}_GATK_merged.tsv ${sample}_GATK.unmatched.tsv
 
 # Split Intervar Column to ACMG & ACMG Rules
-python LCVarSplit.py ${sample}_GATK_merged.tsv ${sample}_GATK_merged_split.tsv
+#python LCVarSplit.py ${sample}_GATK_merged.tsv ${sample}_GATK_merged_split.tsv
 
-mv ${sample}_GATK.unmatched.tsv tmp/
-mv ${sample}_GATK.intervar.hg19_multianno.txt.chr.intervar tmp/
-mv ${sample}_GATK_merged.tsv tmp/
-mv ${sample}_GATK.snpsift.tsv tmp/
-${sample}_GATK.filtered.norm.snpeff.vcf.gz
-#-------------------------- Variant Prioritization 1 ---------------------------#
+#mv ${sample}_GATK.unmatched.tsv tmp/
+#mv ${sample}_GATK.intervar.hg19_multianno.txt.chr.intervar tmp/
+#mv ${sample}_GATK_merged.tsv tmp/
+#mv ${sample}_GATK.snpsift.tsv tmp/
+#${sample}_GATK.filtered.norm.snpeff.vcf.gz
+
+#-------------------------- Variant Prioritization  ---------------------------#
 
 # Prioritize Variants
-python LCVarPrio.py -i ${sample}_GATK_merged_split.tsv -o ${sample}_variants.prioritized.tsv -n 25000 -f tsv
+#python LCVarPrio.py -i ${sample}_GATK_merged_split.tsv -o ${sample}_variants.prioritized.tsv -n 25000 -f tsv
 
 #-------------------------- MAGI ACMG implementation ---------------------------#
 
 # Implement MAGI Vus sub classification
-python LCVarMagi.py ${sample}_variants.prioritized.tsv ${sample}_variants.prioritized.magi.tsv
+#python LCVarMagi.py ${sample}_variants.prioritized.tsv ${sample}_variants.prioritized.magi.tsv
 
-#-------------------------- Variant Prioritization 2 ---------------------------#
+#-------------------------- Process File for HTML ---------------------------#
+
+# Create new info columns
+#python LCVarPreHtml.py ${sample}_variants.prioritized.magi.tsv ${sample}_variants.prioritized.magi.prehtml.tsv
+
+#mv ${sample}_variants.prioritized.magi.tsv tmp/
+#mv ${sample}_GATK_merged_split.tsv tmp/
+#mv ${sample}_variants.prioritized.magi_VUS_summary.tsv tmp/
+#mv ${sample}_variants.prioritized.summary.txt tmp/
+#mv ${sample}_variants.prioritized.tsv tmp/
+
+#-------------------------- Extract QC ---------------------------#
+
+bash LCVarQc.py
+
+#-------------------------- HTML Report ---------------------------#
+
+python LCVarHtml.py ${sample}_variants.prioritized.magi.prehtml.tsv ${sample}.html ${sample}_coverage_metrics.txt
+
 exit 0
-
-
-
-
-
 
 
 
