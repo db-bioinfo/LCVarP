@@ -185,7 +185,7 @@ process_sample() {
 #ln -s /home/administrator/Annovar/annovar/*.pl .
 
 # Intervar/Annovar annotation
-#LCVar.py -b hg19 \
+#LCVarGer.py -b hg19 \
 #	-i ${sample}_GATK.avinput --input_type=AVinput \
 #	-o ${sample}_GATK.intervar \
 #	-t $INTERVARDB \
